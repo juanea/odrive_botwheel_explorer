@@ -1,0 +1,3 @@
+[submodule "botwheel_ws/src/ros_odrive"]
+	path = botwheel_ws/src/ros_odrive
+	url = git@github.com:juanea/ros_odrive.git

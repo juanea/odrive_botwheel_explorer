@@ -1,0 +1,96 @@
+version: "3"
+
+vars:
+  SERVICE: botwheel
+  ROS_DISTRO: lyrical
+  WS: /botwheel_ws
+
+# Pass the host UID/GID into the image build so the 'botwheel' user matches the
+# host and bind-mounted files don't end up root-owned.
+env:
+  USER_UID:
+    sh: id -u
+  USER_GID:
+    sh: id -g
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  build:
+    desc: Build the dev image (deps only, workspace NOT built — build it inside to debug)
+    cmds:
+      - docker compose build
+
+  build-runtime:
+    desc: Build the runtime image (workspace compiled in, ready to drive the robot)
+    cmds:
+      - docker compose --profile robot build botwheel-run
+
+  rebuild:
+    desc: Build the dev image from scratch (no cache)
+    cmds:
+      - docker compose build --no-cache
+
+  up:
+    desc: Start the dev container in the background (sleep infinity)
+    cmds:
+      - docker compose up -d
+
+  down:
+    desc: Stop and remove the container
+    cmds:
+      - docker compose down
+
+  shell:
+    desc: Open a sourced shell inside the running container
+    cmds:
+      - docker compose exec {{.SERVICE}} bash
+
+  colcon:
+    desc: (Re)build the workspace inside the container with colcon
+    cmds:
+      - docker compose exec {{.SERVICE}} bash -lc "cd {{.WS}} && colcon build --symlink-install"
+
+  rosdep:
+    desc: Re-resolve workspace dependencies inside the container
+    cmds:
+      - >-
+        docker compose exec {{.SERVICE}} bash -lc
+        "cd {{.WS}} && sudo apt-get update &&
+        rosdep install --from-paths src --ignore-src --rosdistro {{.ROS_DISTRO}} -y"
+
+  dev:
+    desc: Build image, start container, then open a shell
+    cmds:
+      - task: build
+      - task: up
+      - task: shell
+
+  can-up:
+    desc: 'Bring up the can0 interface (override bitrate: task can-up BITRATE=500000)'
+    vars:
+      BITRATE: '{{.BITRATE | default "250000"}}'
+    cmds:
+      - >-
+        docker compose exec {{.SERVICE}} bash -lc
+        "ip link set can0 up type can bitrate {{.BITRATE}} &&
+        ip -details link show can0"
+
+  run:
+    desc: Build & start the runtime image to drive the robot (launches botwheel_explorer)
+    cmds:
+      - docker compose --profile robot up --build botwheel-run
+
+  logs:
+    desc: Follow the container logs
+    cmds:
+      - docker compose logs -f {{.SERVICE}}
+
+  clean:
+    desc: Remove the workspace build/install/log dirs on the host
+    cmds:
+      - rm -rf botwheel_ws/build botwheel_ws/install botwheel_ws/log

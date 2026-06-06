@@ -1,0 +1,80 @@
+services:
+  botwheel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+      args:
+        ROS_DISTRO: lyrical
+        USER_UID: ${USER_UID:-1000}
+        USER_GID: ${USER_GID:-1000}
+    image: botwheel_explorer:dev
+    container_name: botwheel_dev
+
+    # SocketCAN (can0) lives in the host network namespace, so share it.
+    # This also gives ROS 2 DDS easy host-level discovery.
+    network_mode: host
+
+    # NET_ADMIN: bring up / configure the can0 interface from inside the container
+    #   (e.g. `ip link set can0 up type can bitrate 250000`)
+    # SYS_RAWIO: raw device access used by some camera/CAN stacks
+    cap_add:
+      - NET_ADMIN
+      - SYS_RAWIO
+
+    # Camera / video devices. Add more (video1, video2, ...) to match your hardware.
+    devices:
+      - /dev/video0:/dev/video0
+    group_add:
+      - video
+
+    # Live-mount the workspace so you can edit on the host and build inside.
+    # The dev image ships dependencies only (no built workspace), so run
+    # `colcon build` inside the container when you're ready.
+    volumes:
+      - ./botwheel_ws:/botwheel_ws
+
+    environment:
+      - ROS_DOMAIN_ID=0
+
+    # Default: idle for development. `docker compose exec botwheel bash` to work inside.
+    # To drive the robot, override here or use `docker compose run`, e.g.:
+    #   command: ros2 launch odrive_botwheel_explorer botwheel_explorer.launch.py
+    command: ["sleep", "infinity"]
+
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+    # If the explicit caps/devices above are not enough for your hardware,
+    # the simplest (less restricted) alternative used by the upstream devcontainer is:
+    # privileged: true
+
+  # Runtime image with the workspace prebuilt — drives the robot.
+  # Does NOT start with `docker compose up`; opt in with the "robot" profile:
+  #   docker compose --profile robot up botwheel-run
+  botwheel-run:
+    profiles: ["robot"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+      args:
+        ROS_DISTRO: lyrical
+        USER_UID: ${USER_UID:-1000}
+        USER_GID: ${USER_GID:-1000}
+    image: botwheel_explorer:runtime
+    container_name: botwheel_run
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - SYS_RAWIO
+    devices:
+      - /dev/video0:/dev/video0
+    group_add:
+      - video
+    environment:
+      - ROS_DOMAIN_ID=0
+    restart: unless-stopped
+    # CMD in the runtime stage already launches botwheel_explorer.launch.py;
+    # override `command:` here to run something else.

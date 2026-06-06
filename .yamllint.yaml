@@ -1,0 +1,11 @@
+extends: default
+
+rules:
+  line-length:
+    max: 120
+    allow-non-breakable-words: true
+  document-start: disable
+  truthy:
+    check-keys: false  # allow on/off style keys (e.g. compose, GitHub Actions)
+  comments:
+    min-spaces-from-content: 1

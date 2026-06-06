@@ -1,0 +1,8 @@
+# colcon build artifacts
+botwheel_ws/build
+botwheel_ws/install
+botwheel_ws/log
+
+# Python virtual environments
+.venv/
+venv/

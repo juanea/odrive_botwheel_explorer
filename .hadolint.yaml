@@ -1,0 +1,4 @@
+# Pinning apt package versions is impractical for a ROS base image whose
+# package set tracks the upstream distro; let the distro resolve versions.
+ignored:
+  - DL3008
