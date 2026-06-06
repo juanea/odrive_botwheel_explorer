@@ -1,0 +1,34 @@
+---
+# Install Taskfile (go-task) from the official Cloudsmith apt repository.
+# https://taskfile.dev/installation/#install-script
+- name: Install Taskfile (go-task)
+  hosts: all
+  become: true
+  tasks:
+    - name: Install prerequisites for the Cloudsmith repo setup
+      ansible.builtin.apt:
+        name:
+          - curl
+          - gnupg
+        state: present
+        update_cache: true
+
+    - name: Add the Cloudsmith 'task' apt repository
+      ansible.builtin.shell:
+        cmd: curl -1sLf 'https://dl.cloudsmith.io/public/task/task/setup.deb.sh' | sudo -E bash
+        creates: /etc/apt/sources.list.d/task-task.list
+
+    - name: Install task
+      ansible.builtin.apt:
+        name: task
+        state: present
+        update_cache: true
+
+    - name: Report installed task version
+      ansible.builtin.command: task --version
+      register: task_version
+      changed_when: false
+
+    - name: Show installed task version
+      ansible.builtin.debug:
+        msg: "{{ task_version.stdout }}"

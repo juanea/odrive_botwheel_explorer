@@ -6,3 +6,5 @@ botwheel_ws/log
 # Python virtual environments
 .venv/
 venv/
+
+ansible/inventory/hosts
