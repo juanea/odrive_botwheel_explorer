@@ -1,3 +1,6 @@
 [submodule "botwheel_ws/src/ros_odrive"]
 	path = botwheel_ws/src/ros_odrive
 	url = git@github.com:juanea/ros_odrive.git
+[submodule "botwheel_ws/src/teleop_twist_keyboard"]
+	path = botwheel_ws/src/teleop_twist_keyboard
+	url = git@github.com:juanea/teleop_twist_keyboard.git
