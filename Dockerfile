@@ -91,10 +91,14 @@ RUN source "/opt/ros/${ROS_DISTRO}/setup.bash" \
 ###############################################################################
 FROM rosdep AS dev
 
+# Pipefail so a failure in either side of the `... | bash -` and `... | cat`
+# pipes below aborts the build instead of being masked by the last command.
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Install Node.js (LTS) — packages installed per-user below, not as root
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
-    && apt-get install -y nodejs \
+    && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
 USER botwheel
@@ -104,19 +108,20 @@ USER botwheel
 ENV NPM_CONFIG_PREFIX=/home/botwheel/.npm-global
 ENV PATH=/home/botwheel/.local/bin:/home/botwheel/.npm-global/bin:$PATH
 
+# Intentionally unpinned: these CLIs are meant to track and self-update to the
+# latest release inside the container, so pinning a version would be counter-
+# productive.
+# hadolint ignore=DL3016
 RUN npm install -g @anthropic-ai/claude-code @google/gemini-cli \
     && claude install
 
-# Source ROS 2 (and the workspace overlay, once built) in every shell opened in
-# the container. `docker compose exec ... bash` skips the entrypoint, so without
-# this an opened terminal would not have ROS on its environment. The lines are
-# prepended ahead of ~/.bashrc's non-interactive guard so they also apply to the
-# `bash -lc` shells used by `task colcon`/`task rosdep`. ${ROS_DISTRO} is left
-# unexpanded so it resolves from the base image's env at shell start.
-RUN printf '%s\n' \
-        'source "/opt/ros/${ROS_DISTRO}/setup.bash"' \
-        '[ -f /botwheel_ws/install/setup.bash ] && source /botwheel_ws/install/setup.bash' \
-        | cat - ~/.bashrc > /tmp/bashrc && mv /tmp/bashrc ~/.bashrc
+# Source ROS 2 in every shell opened in the container. `docker compose exec ...
+# bash` skips the entrypoint, so without this an opened terminal would not have
+# ROS on its environment. ${ROS_DISTRO} is left unexpanded so it resolves from
+# the base image's env at shell start.
+# Single quotes are deliberate here: ${ROS_DISTRO} must stay literal.
+# hadolint ignore=SC2016
+RUN echo 'source "/opt/ros/${ROS_DISTRO}/setup.bash"' >> ~/.bashrc
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["sleep", "infinity"]

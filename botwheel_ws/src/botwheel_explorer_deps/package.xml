@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>botwheel_explorer_deps</name>
+  <version>0.0.0</version>
+  <description>
+    Meta-package that declares extra ROS / system dependencies needed by the
+    BotWheel Explorer but not owned by any upstream (submodule) package.
+    It builds nothing — its only job is to give `rosdep install --from-paths src`
+    a manifest to read, so dependencies are installed at image build time without
+    editing the Dockerfile or the upstream forks. Add new <exec_depend> entries
+    here as the project grows.
+  </description>
+  <maintainer email="juanea@gmail.com">Juan Echavarria</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>joy</exec_depend>
+  <exec_depend>teleop_twist_joy</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
