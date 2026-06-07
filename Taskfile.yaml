@@ -2,16 +2,21 @@ version: "3"
 
 vars:
   SERVICE: botwheel
-  ROS_DISTRO: lyrical
+  # Single source of truth for the ROS 2 distro. Change this one line to switch
+  # distros (e.g. jazzy <-> lyrical); it flows into the image build via the env
+  # block below and into the rosdep task.
+  ROS_DISTRO: jazzy
   WS: /botwheel_ws
 
 # Pass the host UID/GID into the image build so the 'botwheel' user matches the
-# host and bind-mounted files don't end up root-owned.
+# host and bind-mounted files don't end up root-owned. ROS_DISTRO is exported so
+# docker compose interpolates it into the image build args.
 env:
   USER_UID:
     sh: id -u
   USER_GID:
     sh: id -g
+  ROS_DISTRO: "{{.ROS_DISTRO}}"
 
 tasks:
   default:

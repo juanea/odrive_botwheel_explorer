@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       target: dev
       args:
-        ROS_DISTRO: lyrical
+        ROS_DISTRO: ${ROS_DISTRO:-jazzy}
         USER_UID: ${USER_UID:-1000}
         USER_GID: ${USER_GID:-1000}
     image: botwheel_explorer:dev
@@ -78,7 +78,7 @@ services:
       dockerfile: Dockerfile
       target: runtime
       args:
-        ROS_DISTRO: lyrical
+        ROS_DISTRO: ${ROS_DISTRO:-jazzy}
         USER_UID: ${USER_UID:-1000}
         USER_GID: ${USER_GID:-1000}
     image: botwheel_explorer:runtime
