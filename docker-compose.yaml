@@ -18,21 +18,39 @@ services:
     # NET_ADMIN: bring up / configure the can0 interface from inside the container
     #   (e.g. `ip link set can0 up type can bitrate 250000`)
     # SYS_RAWIO: raw device access used by some camera/CAN stacks
+    # SYS_NICE: set real-time scheduling priorities (ros2_control realtime threads)
     cap_add:
       - NET_ADMIN
       - SYS_RAWIO
+      - SYS_NICE
+
+    # Real-time scheduling for ros2_control. Requires the SYS_NICE cap above.
+    #   rtprio=99   : allow SCHED_FIFO/RR priorities up to 99
+    #   memlock=-1  : unlimited locked memory (no page faults in RT loops)
+    # https://control.ros.org/master/doc/ros2_control/controller_manager/doc/userdoc.html
+    ulimits:
+      rtprio: 99
+      memlock: -1
 
     # Camera / video devices. Add more (video1, video2, ...) to match your hardware.
-    devices:
-      - /dev/video0:/dev/video0
-    group_add:
-      - video
+    # devices:
+    #   # - /dev/video0:/dev/video0
+    # group_add:
+    #   - video
 
     # Live-mount the workspace so you can edit on the host and build inside.
     # The dev image ships dependencies only (no built workspace), so run
     # `colcon build` inside the container when you're ready.
     volumes:
       - ./botwheel_ws:/botwheel_ws
+      # Git auth — SSH keys and identity for git push
+      - ~/.ssh:/home/botwheel/.ssh:ro
+      - ~/.gitconfig:/home/botwheel/.gitconfig:ro
+      # Claude Code — persisted settings/sessions and config
+      - ~/.claude:/home/botwheel/.claude
+      - ~/.claude.json:/home/botwheel/.claude.json
+      # Gemini CLI — persisted credentials after `gemini auth`
+      - ~/.gemini:/home/botwheel/.gemini
 
     environment:
       - ROS_DOMAIN_ID=0
@@ -69,6 +87,10 @@ services:
     cap_add:
       - NET_ADMIN
       - SYS_RAWIO
+      - SYS_NICE
+    ulimits:
+      rtprio: 99
+      memlock: -1
     devices:
       - /dev/video0:/dev/video0
     group_add:

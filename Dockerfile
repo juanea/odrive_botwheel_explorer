@@ -89,7 +89,22 @@ RUN source "/opt/ros/${ROS_DISTRO}/setup.bash" \
 ###############################################################################
 FROM rosdep AS dev
 
+# Install Node.js (LTS) — packages installed per-user below, not as root
+RUN apt-get update && apt-get install -y --no-install-recommends curl \
+    && curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
 USER botwheel
+
+# User-level npm prefix so global installs are writable without sudo,
+# which allows claude/gemini to self-update inside the container.
+ENV NPM_CONFIG_PREFIX=/home/botwheel/.npm-global
+ENV PATH=/home/botwheel/.local/bin:/home/botwheel/.npm-global/bin:$PATH
+
+RUN npm install -g @anthropic-ai/claude-code @google/gemini-cli \
+    && claude install
+
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["sleep", "infinity"]
 
