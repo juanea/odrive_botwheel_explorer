@@ -15,24 +15,20 @@ The `joy` and `teleop_twist_joy` packages are declared as dependencies of the
 `botwheel_explorer_deps` meta-package, so `rosdep` installs them automatically
 when the image is built — no `apt install` and no Dockerfile changes needed.
 
-After pairing the controller (it shows up as `/dev/input/js0`), run the joystick
-driver and the teleop node. Note that `teleop_twist_joy`'s `teleop-launch.py`
-always publishes to `/cmd_vel` and offers no CLI remap, so the topic is remapped
-on the `teleop_node` directly:
+After pairing the controller (it shows up as `/dev/input/js0`),
+`teleop-launch.py` brings up both the joystick driver and the teleop node in one
+shot. Use `joy_vel` to remap the output topic, `publish_stamped_twist` to emit
+the `TwistStamped` the diff-drive controller expects, and `config_filepath` to
+point at the axis/scale/button config:
 
 ```bash
-# Terminal 1 — joystick driver (publishes /joy)
-ros2 run joy joy_node
-
-# Terminal 2 — convert /joy to TwistStamped on the robot's cmd_vel topic
-ros2 run teleop_twist_joy teleop_node --ros-args \
-  --params-file /opt/ros/$ROS_DISTRO/share/teleop_twist_joy/config/xbox.config.yaml \
-  -r cmd_vel:=/botwheel_explorer/cmd_vel \
-  -p publish_stamped_twist:=true
+ros2 launch teleop_twist_joy teleop-launch.py \
+  joy_vel:='/botwheel_explorer/cmd_vel' \
+  publish_stamped_twist:='true' \
+  config_filepath:='/botwheel_ws/src/botwheel_explorer_deps/config/xbox.config.yaml'
 ```
 
-The `xbox.config.yaml` shipped with `teleop_twist_joy` defines the axis→velocity
-mappings, scaling, and a **deadman/enable button that must be held** for the
-robot to move (plus a turbo button). Adjust axes/scales by copying that file and
-pointing `--params-file` at your copy. `publish_stamped_twist:=true` matches the
-`stamped` twist the diff-drive controller expects.
+The in-project [`xbox.config.yaml`](botwheel_ws/src/botwheel_explorer_deps/config/xbox.config.yaml)
+defines the axis→velocity mappings, scaling, and a **deadman/enable button that
+must be held** for the robot to move (plus a turbo button). Adjust axes/scales by
+editing that file.

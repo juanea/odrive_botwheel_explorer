@@ -99,3 +99,14 @@ tasks:
     desc: Remove the workspace build/install/log dirs on the host
     cmds:
       - rm -rf botwheel_ws/build botwheel_ws/install botwheel_ws/log
+
+  clean-containers:
+    desc: "Stop and remove all Docker containers"
+    cmds:
+      - docker stop $(docker ps -aq) && docker rm $(docker ps -aq)
+    ignore_error: true
+
+  nuke-docker:
+    desc: "Deep clean: forcefully remove all unused containers, networks, images, and volumes"
+    cmds:
+      - docker system prune --all --force --volumes

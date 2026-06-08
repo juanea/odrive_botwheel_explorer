@@ -32,17 +32,34 @@ services:
       rtprio: 99
       memlock: -1
 
-    # Camera / video devices. Add more (video1, video2, ...) to match your hardware.
+    # Bluetooth gamepad (teleop_twist_joy). The controller is paired on the host
+    # with bluetoothctl/bluez and shows up under /dev/input (js* + event*). It is
+    # hot-plugged, so its number varies and the node may not exist at container
+    # start — hence we bind-mount the whole /dev/input dir (so reconnects appear
+    # live, unlike a static `devices:` entry) and allow the whole input device
+    # class via a cgroup rule (major 13 = js*/event*/mouse*).
+    device_cgroup_rules:
+      - 'c 13:* rmw'   # read/mknod/write for all major-13 (input) devices
+
+    # Read the root:input 660 device nodes as the non-root botwheel user. The
+    # base image has no "input" group, so use the host's numeric input GID
+    # (Docker passes raw GIDs through; kernel perm checks are by GID anyway).
+    # Override INPUT_GID if `getent group input` differs on your host.
+    # Camera / video devices: add more (video1, video2, ...) to match your hardware.
+    group_add:
+      - "${INPUT_GID:-996}"
+      # - video
     # devices:
-    #   # - /dev/video0:/dev/video0
-    # group_add:
-    #   - video
+    #   - /dev/video0:/dev/video0
 
     # Live-mount the workspace so you can edit on the host and build inside.
     # The dev image ships dependencies only (no built workspace), so run
     # `colcon build` inside the container when you're ready.
     volumes:
       - ./botwheel_ws:/botwheel_ws
+      # Bluetooth gamepad: bind the input dir so hot-plugged js*/event* nodes
+      # (controller (re)connects) are visible inside the container live.
+      - /dev/input:/dev/input
       # Git auth — SSH keys and identity for git push
       - ~/.ssh:/home/botwheel/.ssh:ro
       - ~/.gitconfig:/home/botwheel/.gitconfig:ro
@@ -93,8 +110,14 @@ services:
       memlock: -1
     devices:
       - /dev/video0:/dev/video0
+    # Bluetooth gamepad — see the dev service above for the rationale.
+    device_cgroup_rules:
+      - 'c 13:* rmw'
+    volumes:
+      - /dev/input:/dev/input
     group_add:
       - video
+      - "${INPUT_GID:-996}"
     environment:
       - ROS_DOMAIN_ID=0
     restart: unless-stopped
