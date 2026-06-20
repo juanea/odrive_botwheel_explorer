@@ -35,4 +35,8 @@ ansible-playbook playbooks/main.yml --ask-become-pass --limit robots
 
 - `task.yml` — installs [Taskfile (go-task)](https://taskfile.dev) from the
   official Cloudsmith apt repository.
+- `prek.yml` — installs [prek](https://github.com/j178/prek) from the official
+  release installer into the user's `~/.local/bin`.
+- `bluez.yml` — installs [BlueZ](https://www.bluez.org/), which provides the
+  `bluetoothctl` utility used to pair a PlayStation controller with the robot.
 - `main.yml` — imports every playbook above; the entry point for a full provision.

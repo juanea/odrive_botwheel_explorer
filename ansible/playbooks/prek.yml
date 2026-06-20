@@ -1,0 +1,27 @@
+---
+# Install prek (a pre-commit replacement) from the official release installer.
+# https://github.com/j178/prek
+- name: Install prek
+  hosts: all
+  # The installer drops the binary into the user's ~/.local/bin, so run as the
+  # connecting user rather than root.
+  become: false
+  vars:
+    prek_version: v0.4.4
+  tasks:
+    - name: Run the prek installer script
+      ansible.builtin.shell:
+        cmd: >-
+          curl --proto '=https' --tlsv1.2 -LsSf
+          https://github.com/j178/prek/releases/download/{{ prek_version }}/prek-installer.sh
+          | sh
+        creates: "{{ ansible_env.HOME }}/.local/bin/prek"
+
+    - name: Report installed prek version
+      ansible.builtin.command: "{{ ansible_env.HOME }}/.local/bin/prek --version"
+      register: prek_version_out
+      changed_when: false
+
+    - name: Show installed prek version
+      ansible.builtin.debug:
+        msg: "{{ prek_version_out.stdout }}"

@@ -1,3 +1,5 @@
 ---
 # Top-level provisioning playbook. Add more playbooks below as the setup grows.
 - import_playbook: task.yml
+- import_playbook: prek.yml
+- import_playbook: bluez.yml

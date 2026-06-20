@@ -1,0 +1,22 @@
+---
+# Install BlueZ, which provides the `bluetoothctl` utility used to pair a
+# PlayStation controller with the robot.
+# https://www.bluez.org/
+- name: Install BlueZ
+  hosts: all
+  become: true
+  tasks:
+    - name: Install bluez
+      ansible.builtin.apt:
+        name: bluez
+        state: present
+        update_cache: true
+
+    - name: Report installed bluetoothctl version
+      ansible.builtin.command: bluetoothctl --version
+      register: bluetoothctl_version
+      changed_when: false
+
+    - name: Show installed bluetoothctl version
+      ansible.builtin.debug:
+        msg: "{{ bluetoothctl_version.stdout }}"
