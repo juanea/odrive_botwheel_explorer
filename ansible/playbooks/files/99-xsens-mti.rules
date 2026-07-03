@@ -1,0 +1,11 @@
+# Xsens MTi motion trackers (e.g. MTi-680 Development Board, USB ID 2639:0300).
+#
+# Match by Xsens' USB vendor id so the rule holds across the different MTi
+# product ids. Two effects:
+#   MODE="0666"          -> any user can open it (and so can the non-root
+#                           'botwheel' user inside the container, which sees the
+#                           same permission bits on the mounted device node).
+#   SYMLINK+="xsens_mti" -> stable /dev/xsens_mti name regardless of which
+#                           ttyUSB<N> the kernel happens to assign, so
+#                           docker-compose can mount it deterministically.
+SUBSYSTEM=="tty", ATTRS{idVendor}=="2639", MODE="0666", GROUP="dialout", SYMLINK+="xsens_mti"

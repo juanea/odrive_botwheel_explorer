@@ -49,8 +49,15 @@ services:
     group_add:
       - "${INPUT_GID:-996}"
       # - video
-    # devices:
-    #   - /dev/video0:/dev/video0
+
+    # Xsens MTi IMU. The host udev rule (ansible/playbooks/files/99-xsens-mti.rules)
+    # gives it a stable /dev/xsens_mti symlink and 0666 perms; we map that to a
+    # fixed /dev/ttyUSB0 inside the container because the driver's default config
+    # (scan_for_devices: true) probes /dev/ttyUSB*. Run the udev playbook on the
+    # host first, or this device won't exist and `compose up` will fail.
+    devices:
+      - /dev/xsens_mti:/dev/ttyUSB0
+      # - /dev/video0:/dev/video0
 
     # Live-mount the workspace so you can edit on the host and build inside.
     # The dev image ships dependencies only (no built workspace), so run
@@ -110,6 +117,8 @@ services:
       memlock: -1
     devices:
       - /dev/video0:/dev/video0
+      # Xsens MTi IMU — see the dev service above for the udev/symlink rationale.
+      - /dev/xsens_mti:/dev/ttyUSB0
     # Bluetooth gamepad — see the dev service above for the rationale.
     device_cgroup_rules:
       - 'c 13:* rmw'

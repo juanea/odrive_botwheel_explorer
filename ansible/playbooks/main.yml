@@ -3,3 +3,4 @@
 - import_playbook: task.yml
 - import_playbook: prek.yml
 - import_playbook: bluez.yml
+- import_playbook: udev.yml

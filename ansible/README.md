@@ -39,4 +39,8 @@ ansible-playbook playbooks/main.yml --ask-become-pass --limit robots
   release installer into the user's `~/.local/bin`.
 - `bluez.yml` — installs [BlueZ](https://www.bluez.org/), which provides the
   `bluetoothctl` utility used to pair a PlayStation controller with the robot.
+- `udev.yml` — installs `/etc/udev/rules.d/99-xsens-mti.rules` so the Xsens MTi
+  IMU comes up world-readable with a stable `/dev/xsens_mti` symlink, then
+  reloads udev. This is what lets docker-compose mount the IMU into the
+  container (see `devices:` in `docker-compose.yaml`).
 - `main.yml` — imports every playbook above; the entry point for a full provision.

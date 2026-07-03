@@ -1,0 +1,21 @@
+---
+# Install udev rules for the robot's USB hardware so devices come up with
+# predictable names and permissions on every boot / hot-plug.
+- name: Install udev rules
+  hosts: all
+  become: true
+  tasks:
+    - name: Install Xsens MTi udev rule
+      ansible.builtin.copy:
+        src: files/99-xsens-mti.rules
+        dest: /etc/udev/rules.d/99-xsens-mti.rules
+        owner: root
+        group: root
+        mode: "0644"
+      register: xsens_rule
+
+    - name: Reload udev rules and re-trigger tty devices
+      when: xsens_rule.changed
+      ansible.builtin.shell:
+        cmd: udevadm control --reload-rules && udevadm trigger --subsystem-match=tty
+      changed_when: true

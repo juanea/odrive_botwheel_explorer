@@ -4,3 +4,7 @@
 [submodule "botwheel_ws/src/teleop_twist_keyboard"]
 	path = botwheel_ws/src/teleop_twist_keyboard
 	url = git@github.com:juanea/teleop_twist_keyboard.git
+[submodule "botwheel_ws/src/Xsens_MTi_ROS_Driver_and_Ntrip_Client"]
+	path = botwheel_ws/src/Xsens_MTi_ROS_Driver_and_Ntrip_Client
+	url = https://github.com/xsenssupport/Xsens_MTi_ROS_Driver_and_Ntrip_Client.git
+	branch = ros2
