@@ -8,3 +8,6 @@ botwheel_ws/log
 venv/
 
 ansible/inventory/hosts
+
+# Local environment secrets
+.env
